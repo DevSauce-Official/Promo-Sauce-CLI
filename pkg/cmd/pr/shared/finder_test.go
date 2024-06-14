@@ -18,6 +18,7 @@ func TestFind(t *testing.T) {
 		baseRepoFn   func() (ghrepo.Interface, error)
 		branchFn     func() (string, error)
 		branchConfig func(string) git.BranchConfig
+		pushDefault  func() (string, error)
 		remotesFn    func() (context.Remotes, error)
 		selector     string
 		fields       []string
@@ -330,6 +331,7 @@ func TestFind(t *testing.T) {
 					c.Push = "origin/blue-upstream-berries"
 					return
 				},
+				pushDefault: func() (string, error) { return "upstream", nil },
 				remotesFn: func() (context.Remotes, error) {
 					return context.Remotes{{
 						Remote: &git.Remote{Name: "origin"},
@@ -373,7 +375,8 @@ func TestFind(t *testing.T) {
 					c.RemoteURL = u
 					return
 				},
-				remotesFn: nil,
+				pushDefault: func() (string, error) { return "upstream", nil },
+				remotesFn:   nil,
 			},
 			httpStub: func(r *httpmock.Registry) {
 				r.Register(
@@ -498,6 +501,7 @@ func TestFind(t *testing.T) {
 				baseRepoFn:   tt.args.baseRepoFn,
 				branchFn:     tt.args.branchFn,
 				branchConfig: tt.args.branchConfig,
+				pushDefault:  tt.args.pushDefault,
 				remotesFn:    tt.args.remotesFn,
 			}
 

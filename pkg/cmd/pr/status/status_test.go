@@ -384,6 +384,7 @@ func Test_prSelectorForCurrentBranch(t *testing.T) {
 		branch.Frederick888/main.merge refs/heads/main
 	`))
 	rs.Register(`git rev-parse --verify --quiet --abbrev-ref Frederick888/main@\{push\}`, 1, "")
+	rs.Register(`git config push\.default`, 0, "upstream")
 
 	repo := ghrepo.NewWithHost("octocat", "playground", "github.com")
 	rem := context.Remotes{
