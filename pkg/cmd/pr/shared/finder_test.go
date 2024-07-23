@@ -18,6 +18,7 @@ func TestFind(t *testing.T) {
 		baseRepoFn   func() (ghrepo.Interface, error)
 		branchFn     func() (string, error)
 		branchConfig func(string) git.BranchConfig
+		pushDefault  func() (string, error)
 		remotesFn    func() (context.Remotes, error)
 		selector     string
 		fields       []string
@@ -232,7 +233,16 @@ func TestFind(t *testing.T) {
 					return "blueberries", nil
 				},
 				branchConfig: func(branch string) (c git.BranchConfig) {
+					c.MergeRef = "refs/heads/blueberries"
+					c.RemoteName = "origin"
+					c.Push = "origin/blueberries"
 					return
+				},
+				remotesFn: func() (context.Remotes, error) {
+					return context.Remotes{{
+						Remote: &git.Remote{Name: "origin"},
+						Repo:   ghrepo.New("OWNER", "REPO"),
+					}}, nil
 				},
 			},
 			httpStub: func(r *httpmock.Registry) {
@@ -318,8 +328,11 @@ func TestFind(t *testing.T) {
 				branchConfig: func(branch string) (c git.BranchConfig) {
 					c.MergeRef = "refs/heads/blue-upstream-berries"
 					c.RemoteName = "origin"
+					c.PushRemoteName = "origin"
+					c.Push = "origin/blue-upstream-berries"
 					return
 				},
+				pushDefault: func() (string, error) { return "upstream", nil },
 				remotesFn: func() (context.Remotes, error) {
 					return context.Remotes{{
 						Remote: &git.Remote{Name: "origin"},
@@ -361,9 +374,11 @@ func TestFind(t *testing.T) {
 					u, _ := url.Parse("https://github.com/UPSTREAMOWNER/REPO")
 					c.MergeRef = "refs/heads/blue-upstream-berries"
 					c.RemoteURL = u
+					c.PushRemoteURL = u
 					return
 				},
-				remotesFn: nil,
+				pushDefault: func() (string, error) { return "upstream", nil },
+				remotesFn:   nil,
 			},
 			httpStub: func(r *httpmock.Registry) {
 				r.Register(
@@ -488,6 +503,7 @@ func TestFind(t *testing.T) {
 				baseRepoFn:   tt.args.baseRepoFn,
 				branchFn:     tt.args.branchFn,
 				branchConfig: tt.args.branchConfig,
+				pushDefault:  tt.args.pushDefault,
 				remotesFn:    tt.args.remotesFn,
 			}
 
